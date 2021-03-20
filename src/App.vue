@@ -1,32 +1,99 @@
 <template>
   <div id="app">
-    <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link>
+    <div class ="prefooter">
+      <div id="menu">
+        <router-link to="/"><div class="item" id="first">Home</div></router-link>
+        <router-link to="/rank"><div class="item" id="last">Rank some movies!</div></router-link>
+      </div>
+      <router-view/>
     </div>
-    <router-view/>
+    <footer class="footer">
+        <p>This website was made by Ryan King. View the GitHub repository <a
+          href="https://github.com/ryanrking/movie-reviews" target="_blank">
+          here.</a>
+      </p>
+    </footer>
   </div>
 </template>
 
 <style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Noto Serif', serif;
+}
+
+h1, h2, h3, h4, h5 {
+  font-family: 'Poppins', sans-serif;
+}
+
 #app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  position: relative;
+  min-height: 100vh;
+  background-color: rgb(240, 239, 239);
+}
+
+#menu {
+  padding: 0px 5px;
+  width: 100%;
+  background-color: purple;
+  margin-bottom: 20px;
+  color: white;
+  font-family: 'Poppins', sans-serif;
+  display: flex;
+  flex-direction: row;
+}
+
+#menu a {
+  color: white;
+  text-decoration: none;
+}
+
+.item {
+  padding: 15px 15px
+}
+
+.item:first-of-type {
+  padding-right: 15px;
+  padding-left: 15px;
+  border-right: 1px solid white;
+}
+
+#first {
+  padding-left: 20px;
+}
+
+#last {
+  border-right: none;
+}
+
+.prefooter {
+    padding: 0 0 140px 0;
+}
+
+.footer {
+  background-color: #acacac;
+  padding: 0;
+  margin: 0;
+  height: 90px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: black;
+  position: absolute;
+  bottom: 0;
   text-align: center;
-  color: #2c3e50;
 }
 
-#nav {
-  padding: 30px;
+.footer a {
+  color: rgb(31, 31, 31);
 }
 
-#nav a {
-  font-weight: bold;
-  color: #2c3e50;
-}
-
-#nav a.router-link-exact-active {
-  color: #42b983;
+.footer p {
+  margin: 5px 5%;
+  font-size: 1em;
+  font-weight: normal;
 }
 </style>
