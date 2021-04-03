@@ -157,7 +157,7 @@ button {
   width: 200px;
 }
 
-@media only screen and (min-width: 600px) {
+@media only screen and (min-width: 700px) {
   .wrapper {
     width: 50%;
   }
@@ -181,10 +181,12 @@ button {
     height: 300px;
   }
   
-  .movies::after {
-  content: "";
-  flex: auto;
-  } 
+  /* .movies::after {
+    content: "";
+    flex: auto;
+    flex-basis: 200px;
+    flex-grow: 0;
+  }  */
 }
 </style>
 
@@ -232,6 +234,7 @@ export default {
       try {
         let response = await axios.get("/api/movies");
         this.movies = response.data;
+        this.movies.sort(function(a,b){ return a.name.localeCompare(b.name) });
         return true;
       } catch (error) {
         //console.log()
