@@ -11,7 +11,7 @@
     <footer class="footer">
         <p>This website was made by Ryan King. View the GitHub repository <a
           href="https://github.com/ryanrking/movie-reviews" target="_blank">
-          here. The final portion of this project took 7 hours.</a>
+          here.</a> The final portion of this project took 7 hours.
       </p>
     </footer>
   </div>
