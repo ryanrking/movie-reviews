@@ -15,6 +15,18 @@ mongoose.connect('mongodb://localhost:27017/movies', {
   useUnifiedTopology: true
 });
 
+const cookieParser = require("cookie-parser");
+app.use(cookieParser());
+
+const cookieSession = require("cookie-session");
+app.use(cookieSession({
+  name: 'session',
+  keys: ['secretValue'],
+  cookie: {
+    maxAge: 24 * 60 * 60 * 1000
+  }
+}));
+
 // Note: CHANGE THIS before publishing
 const upload = multer({
   dest: '../front-end/public/images/',
@@ -35,6 +47,11 @@ const movieSchema = new mongoose.Schema({
   numRankings: { type: Number, default:0 }
 });
 
+const users = require("./users.js");
+app.use("/api/users", users.routes);
+const User = users.model;
+const validUser = users.valid;
+
 const Movie = mongoose.model('Movie', movieSchema);
 
 const commentSchema = new mongoose.Schema({
@@ -43,7 +60,10 @@ const commentSchema = new mongoose.Schema({
     ref: 'Movie'
   },
   text: String,
-  author: String,
+  author: {
+    type: mongoose.Schema.ObjectId,
+    ref: 'User'
+  },
 });
 
 const Comment = mongoose.model('Comment', commentSchema);
@@ -52,7 +72,7 @@ const Comment = mongoose.model('Comment', commentSchema);
 
 // Upload a photo. Uses the multer middleware for the upload and then returns
 // the path where the photo is stored in the file system.
-app.post('/api/photos', upload.single('photo'), async (req, res) => {
+app.post('/api/photos', validUser, upload.single('photo'), async (req, res) => {
   // Just a safety check
   if (!req.file) {
     return res.sendStatus(400);
@@ -63,7 +83,7 @@ app.post('/api/photos', upload.single('photo'), async (req, res) => {
 });
 
 // Add a movie to database
-app.post('/api/movies', async (req, res) => {
+app.post('/api/movies', validUser, async (req, res) => {
   const movie = new Movie({
     name: req.body.name,
     rating: req.body.rating,
@@ -108,8 +128,8 @@ app.get('/api/movies/:movieID', async (req, res) => {
   }
 });
 
-//Update movie
-app.put('/api/movies/:movieID', async (req, res) => {
+// Update movie (with new battle arena placement) -- only updates ranking and number of rankings
+app.put('/api/movies/:movieID', validUser, async (req, res) => {
   try {
     let movie = await Movie.findOne({_id:req.params.movieID});
     if (!movie) {
@@ -117,13 +137,6 @@ app.put('/api/movies/:movieID', async (req, res) => {
       return;
     }
 
-    movie.name = req.body.name;
-    movie.rating = req.body.rating;
-    movie.director = req.body.director;
-    movie.tomatometer = req.body.tomatometer;
-    movie.metacritic = req.body.metacritic;
-    movie.review = req.body.review;
-    movie.poster = req.body.poster;
     movie.ranking = req.body.ranking;
     movie.numRankings = req.body.numRankings;
 
@@ -136,7 +149,7 @@ app.put('/api/movies/:movieID', async (req, res) => {
 });
 
 // Post a comment to a movie
-app.post('/api/movies/:movieID/comments', async (req, res) => {
+app.post('/api/movies/:movieID/comments', validUser, async (req, res) => {
   try {
       let movie = await Movie.findOne({_id: req.params.movieID});
       if (!movie) {
@@ -147,7 +160,7 @@ app.post('/api/movies/:movieID/comments', async (req, res) => {
       let comment = new Comment({
           movie: movie,
           text: req.body.text,
-          author: req.body.author,
+          author: req.user,
       });
       await comment.save();
       res.send(comment);
@@ -165,7 +178,7 @@ app.get('/api/movies/:movieID/comments', async (req, res) => {
           res.send(404);
           return;
       }
-      let comments = await Comment.find({movie:movie});
+      let comments = await Comment.find({movie:movie}).populate('author');
       res.send(comments);
   } catch (error) {
       console.log(error);
@@ -174,15 +187,22 @@ app.get('/api/movies/:movieID/comments', async (req, res) => {
 });
 
 // Update a comment
-app.put('/api/movies/:movieID/comments/:commentID', async (req, res) => {
+app.put('/api/movies/:movieID/comments/:commentID', validUser, async (req, res) => {
   try {
-      let comment = await Comment.findOne({_id:req.params.commentID, movie: req.params.movieID});
+      let comment = await Comment.findOne({_id:req.params.commentID, 
+        movie: req.params.movieID}).populate('author');
       if (!comment) {
           res.send(404);
           return;
       }
+      if (req.user.username != comment.author.username) {
+        res.status(400).send({
+          message: "Trying to edit another user's comment"
+        });
+        return;
+      }
+
       comment.text = req.body.text;
-      comment.author = req.body.author;
       await comment.save();
       res.send(comment);
   } catch (error) {
@@ -192,18 +212,38 @@ app.put('/api/movies/:movieID/comments/:commentID', async (req, res) => {
 });
 
 // Delete a comment
-app.delete('/api/movies/:movieID/comments/:commentID', async (req, res) => {
+app.delete('/api/movies/:movieID/comments/:commentID', validUser, async (req, res) => {
   try {
-      let comment = await Comment.findOne({_id:req.params.commentID, movie: req.params.movieID});
+      let comment = await Comment.findOne({_id:req.params.commentID, 
+        movie: req.params.movieID}).populate('author');
       if (!comment) {
           res.send(404);
           return;
       }
+      if (req.user.username != comment.author.username) {
+        res.status(400).send({
+          message: "Trying to delete another user's comment"
+        });
+        return;
+      }
+
       await comment.delete();
       res.sendStatus(200);
   } catch (error) {
       console.log(error);
       res.sendStatus(500);
+  }
+});
+
+// Get comments associated with a user
+app.get('/api/comments', validUser, async (req, res) => {
+  try {
+    let comments = await Comment.find({author: req.user})
+      .populate('movie');
+    res.send(comments);
+  } catch (error) {
+    console.log(error);
+    res.sendStatus(500);
   }
 });
 

@@ -6,10 +6,15 @@
     <div id="buttons">
       <button @click="getRandomSelection">Get a new selection</button>
       <button @click="submit" id="submit">Submit ranking!</button>
-      <button @click="resetRankings" id="reset">Reset all rankings</button>
+      <button @click="resetRankings" id="reset" v-if="user">Reset all rankings</button>
     </div>
     <div v-if="submitted">
-      <h4>Ranking submitted! Click on a film to see how your ranking affected its score, or get a new selection and battle again!</h4>
+      <div v-if="user">
+        <h4>Ranking submitted! Click on a film to see how your ranking affected its score, or get a new selection and battle again!</h4>
+      </div>
+      <div v-else>
+        <h4>Your rankings won't saved unless you're logged in. Come back after you've logged in!</h4>
+      </div>
     </div>
     <div v-if="showReset">
       <h4>All previous rankings reset!</h4>
@@ -159,8 +164,19 @@ export default {
       showReset: false,
     }
   },
-  created() {
+  async created() {
+    try {
+      let response = await axios.get('/api/users');
+      this.$root.$data.user = response.data.user;
+    } catch (error) {
+      this.$root.$data.user = null;
+    }
     this.getRandomSelection();
+  },
+  computed: {
+    user() {
+      return this.$root.$data.user;
+    }
   },
   methods: {
     dragItem(item) {
@@ -182,16 +198,17 @@ export default {
       if (this.submitted == true) return;
       this.showReset = false;
       this.submitted = true;
+      if (!this.user) return;
       for(let i = 0; i < 5; i++) {
         let movie = this.selection[i]
         await axios.put(`/api/movies/${movie._id}`, {
-          name: movie.name,
-          rating: movie.rating,
-          director: movie.director,
-          tomatometer: movie.tomatometer,
-          metacritic: movie.metacritic,
-          review: movie.review,
-          poster: movie.poster,
+          // name: movie.name,
+          // rating: movie.rating,
+          // director: movie.director,
+          // tomatometer: movie.tomatometer,
+          // metacritic: movie.metacritic,
+          // review: movie.review,
+          // poster: movie.poster,
           ranking: (movie.ranking + i + 1),
           numRankings: (movie.numRankings + 1)
         });
@@ -223,13 +240,13 @@ export default {
         movie.ranking = 0;
         movie.numRankings = 0;
         await axios.put(`/api/movies/${movie._id}`, {
-          name: movie.name,
-          rating: movie.rating,
-          director: movie.director,
-          tomatometer: movie.tomatometer,
-          metacritic: movie.metacritic,
-          review: movie.review,
-          poster: movie.poster,
+          // name: movie.name,
+          // rating: movie.rating,
+          // director: movie.director,
+          // tomatometer: movie.tomatometer,
+          // metacritic: movie.metacritic,
+          // review: movie.review,
+          // poster: movie.poster,
           ranking: 0,
           numRankings: 0
         });

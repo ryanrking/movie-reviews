@@ -21,10 +21,9 @@
           <p>{{movie.review}}</p>
         </div>
 
-        <div id="comments">
+        <div id="comments" v-if="user">
           <h3>Disagree? Tell me why in excruciating detail!</h3>
           <form v-on:submit.prevent="addComment">
-            <input v-model="addedName" placeholder="Name">
             <textarea v-model="addedComment" placeholder="Your argument"></textarea>
             <br />
             <button type="submit" id="submit">Comment</button>
@@ -38,17 +37,13 @@
         <div class="single-comment" v-if="editing == false || editComment != comment._id">
           <div>
             <p>{{comment.text}}</p>
-            <p><i>-- {{comment.author}}</i></p>
+            <p><i>-- {{comment.author.firstName}} {{comment.author.lastName}}</i></p>
           </div>
-          <button v-on:click="startEdit(comment)" class="edit">Edit</button>
-          <button v-on:click="remove(comment)" class="remove">X</button>
+          <button v-on:click="startEdit(comment)" v-if="comment.author._id == user._id" class="edit">Edit</button>
+          <button v-on:click="remove(comment)" v-if="comment.author._id == user._id" class="remove">X</button>
         </div>
         <form class="edit-zone" v-else v-on:submit.prevent=submitEdit(comment)>
           <div class="text-edit">
-            <div class="edit-field">
-              <label class="edit-label">Name:</label>
-              <input v-model="editedName" placeholder="Name">
-            </div>
             <div class="edit-field">
               <label class="edit-label">Comment:</label>
               <textarea v-model="editedText" placeholder="Your argument"></textarea>
@@ -326,7 +321,13 @@ export default {
       editedName: '',
     }
   },
-  async created() {
+    async created() {
+    try {
+      let response = await axios.get('/api/users');
+      this.$root.$data.user = response.data.user;
+    } catch (error) {
+      this.$root.$data.user = null;
+    }
     await this.getMovie(this.$route.params.id);
     if (this.movie.ranking > 0) {
       let avg =  Math.round(10 * parseInt(this.movie.ranking) / parseInt(this.movie.numRankings)) / 10;
@@ -338,6 +339,9 @@ export default {
   computed: {
     hasComments() {
       return this.comments.length > 0;
+    },
+    user() {
+      return this.$root.$data.user;
     }
   },
   methods: {
@@ -348,7 +352,6 @@ export default {
           author: this.addedName
         });
         this.addedComment = ''
-        this.addedName = ''
         await this.getComments();
       } catch(error) {
         // console.log(error)
@@ -361,13 +364,6 @@ export default {
       } catch (error) {
         // console.log(error)
       }
-
-
-      let index = this.comments[this.movie.id].findIndex(c => c.text === comment.text);
-      this.comments[this.movie.id].splice(index, 1);
-      if (this.comments[this.movie.id].length == 0) {
-        this.$delete(this.comments, this.movie.id);
-      }
     },
     startEdit(comment) {
       this.editing = true;
@@ -379,11 +375,9 @@ export default {
       try {
         await axios.put(`/api/movies/${this.movie._id}/comments/${comment._id}`, {
           text: this.editedText,
-          author: this.editedName
         });
         this.getComments()
         this.editedText = '';
-        this.editedName = '';
         this.editing = false;
       } catch (error) {
         // console.log(error)

@@ -1,9 +1,10 @@
 <template>
   <div id="app">
-    <div class ="prefooter">
+    <div id ="prefooter">
       <div id="menu">
         <router-link to="/"><div class="item" id="first">Home</div></router-link>
-        <router-link to="/rank"><div class="item" id="last">Movie Arena</div></router-link>
+        <router-link to="/rank"><div class="item">Movie Arena</div></router-link>
+        <router-link to="/login"><div class="item" id="last">My Account</div></router-link>
       </div>
       <router-view/>
     </div>
@@ -32,6 +33,22 @@ h1, h2, h3, h4, h5 {
   position: relative;
   min-height: 100vh;
   background-color: rgb(240, 239, 239);
+  background-image: none;
+}
+
+/* Change this to relative location! */
+#app.login {
+  background-image: url("../public/login-background.jpg");
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  width: 100%;
+  background-color: rgba(255, 255, 240, 0);
+}
+
+#prefooter.login {
+  background-color: #420366b7;
+  min-height: 100vh;
 }
 
 #menu {
@@ -68,8 +85,9 @@ h1, h2, h3, h4, h5 {
   border-right: none;
 }
 
-.prefooter {
-    padding: 0 0 140px 0;
+#prefooter {
+  padding: 0 0 140px 0;
+  background-color: inherit;
 }
 
 .footer {
@@ -95,5 +113,11 @@ h1, h2, h3, h4, h5 {
   margin: 5px 5%;
   font-size: 1em;
   font-weight: normal;
+}
+
+@media only screen and (max-width: 350px) {
+  #menu {
+    font-size: .82em;
+  }
 }
 </style>

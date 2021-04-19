@@ -21,7 +21,7 @@
   <div v-else>
     <h3>No movies to display!</h3>
   </div>
-  <button @click="addMovieInsert" v-if="adding == false">+ Add a movie!</button>
+  <button @click="addMovieInsert" v-if="adding == false && user">+ Add a movie!</button>
   <form v-if="adding" v-on:submit.prevent="addMovie" id="new-movie">
     <h2>Add a movie:</h2>
     <input v-model="addedName" placeholder="Movie title">
@@ -209,7 +209,13 @@ export default {
       movies: [],
     }
   },
-  created() {
+    async created() {
+    try {
+      let response = await axios.get('/api/users');
+      this.$root.$data.user = response.data.user;
+    } catch (error) {
+      this.$root.$data.user = null;
+    }
     this.getMovies();
   },
   computed:{
@@ -218,6 +224,9 @@ export default {
     },
     selectedMovies() {
       return this.movies.filter(movie => movie.name.toLowerCase().search(this.searchText.toLowerCase()) >= 0);
+    },
+    user() {
+      return this.$root.$data.user;
     }
   },
   methods: {
