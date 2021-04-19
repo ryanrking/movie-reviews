@@ -13,7 +13,7 @@
         <h4>Ranking submitted! Click on a film to see how your ranking affected its score, or get a new selection and battle again!</h4>
       </div>
       <div v-else>
-        <h4>Your rankings won't saved unless you're logged in. Come back after you've logged in!</h4>
+        <h4>Your rankings won't be saved unless you're logged in. Come back after you've logged in!</h4>
       </div>
     </div>
     <div v-if="showReset">
