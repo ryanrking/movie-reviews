@@ -39,8 +39,8 @@
             <p>{{comment.text}}</p>
             <p><i>-- {{comment.author.firstName}} {{comment.author.lastName}}</i></p>
           </div>
-          <button v-on:click="startEdit(comment)" v-if="comment.author._id == user._id" class="edit">Edit</button>
-          <button v-on:click="remove(comment)" v-if="comment.author._id == user._id" class="remove">X</button>
+          <button v-on:click="startEdit(comment)" v-if="user && comment.author._id == user._id" class="edit">Edit</button>
+          <button v-on:click="remove(comment)" v-if="user && comment.author._id == user._id" class="remove">X</button>
         </div>
         <form class="edit-zone" v-else v-on:submit.prevent=submitEdit(comment)>
           <div class="text-edit">
