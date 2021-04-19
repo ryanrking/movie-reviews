@@ -209,6 +209,7 @@ p {
 .button:hover {
   color:rgb(241, 234, 234);
   text-decoration: none;
+  cursor: pointer;
 }
 
 .button:visited {
